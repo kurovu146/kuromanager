@@ -53,6 +53,9 @@ export async function updateIssue(id: string, patch: Record<string, unknown>) {
 export async function deleteIssue(id: string) {
   const supabase = await createClient()
   const { error } = await supabase.from('issues').delete().eq('id', id)
-  if (error) return { error: error.message }
+  if (error) {
+    if (error.code === '42501') return { error: 'Chỉ người tạo hoặc admin được xóa issue' }
+    return { error: error.message }
+  }
   return {}
 }
