@@ -17,9 +17,11 @@ import { toast } from 'sonner'
 const selectClass =
   'h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50'
 
+type InviteResult = { link: string; emailSent?: boolean; emailError?: string }
+
 export function InviteDialog() {
   const [open, setOpen] = useState(false)
-  const [link, setLink] = useState<string>()
+  const [result, setResult] = useState<InviteResult>()
   const [pending, startTransition] = useTransition()
 
   function onSubmit(fd: FormData) {
@@ -29,8 +31,9 @@ export function InviteDialog() {
         toast.error(res.error)
         return
       }
-      setLink(res.link)
-      toast.success('Đã tạo lời mời — copy link gửi cho thành viên')
+      setResult(res as InviteResult)
+      if ((res as InviteResult).emailSent) toast.success('Đã gửi email mời')
+      else toast.success('Đã tạo lời mời — copy link gửi cho thành viên')
     })
   }
 
@@ -39,7 +42,7 @@ export function InviteDialog() {
       open={open}
       onOpenChange={(o) => {
         setOpen(o)
-        if (!o) setLink(undefined)
+        if (!o) setResult(undefined)
       }}
     >
       <DialogTrigger render={<Button>Mời thành viên</Button>} />
@@ -62,10 +65,16 @@ export function InviteDialog() {
           <Button type="submit" disabled={pending}>
             {pending ? 'Đang tạo…' : 'Tạo lời mời'}
           </Button>
-          {link && (
+          {result && (
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Link mời (copy gửi thành viên):</p>
-              <div className="rounded bg-muted p-2 text-xs break-all select-all">{link}</div>
+              {result.emailSent ? (
+                <p className="text-xs text-green-600">✓ Đã gửi email mời.</p>
+              ) : (
+                <p className="text-xs text-amber-600">
+                  Email chưa gửi được{result.emailError ? ` (${result.emailError})` : ''} — copy link gửi tay:
+                </p>
+              )}
+              <div className="rounded bg-muted p-2 text-xs break-all select-all">{result.link}</div>
             </div>
           )}
         </form>

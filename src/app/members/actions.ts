@@ -4,6 +4,7 @@ import { randomBytes } from 'node:crypto'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { inviteSchema } from '@/lib/validation/invite'
+import { sendInviteEmail } from '@/lib/email'
 
 export async function inviteMember(formData: FormData) {
   const parsed = inviteSchema.safeParse(Object.fromEntries(formData))
@@ -22,9 +23,13 @@ export async function inviteMember(formData: FormData) {
   }
 
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? ''
+  const link = `${base}/invite/${token}`
+
+  // Gửi email mời qua Resend (best-effort) — vẫn trả link để admin copy nếu email lỗi.
+  const mail = await sendInviteEmail(parsed.data.email, link, parsed.data.role)
+
   revalidatePath('/settings/members')
-  // MVP: trả link để admin gửi tay (chưa tích hợp email service).
-  return { link: `${base}/invite/${token}` }
+  return { link, emailSent: mail.sent, emailError: mail.sent ? undefined : mail.error }
 }
 
 // Bảo mật: KHÔNG nhận userId từ client. RPC dùng auth.uid() + kiểm tra email khớp lời mời.
