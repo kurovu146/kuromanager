@@ -1,10 +1,10 @@
-# Sprintly — Thiết kế (Design Spec)
+# KuroManager — Thiết kế (Design Spec)
 
 > Ngày: 2026-06-13 · Trạng thái: Đã duyệt thiết kế, chờ review spec → writing-plans
 
 ## 1. Mục tiêu
 
-Sprintly là công cụ quản lý dự án kiểu Jira (Scrum) cho **một team nhỏ (1 nhóm)**. MVP tập trung vào vòng làm việc Scrum cốt lõi: quản lý nhiều project, viết issue (Story/Task/Bug), lập kế hoạch sprint từ backlog, và theo dõi tiến độ qua Kanban board kéo-thả có realtime.
+KuroManager là công cụ quản lý dự án kiểu Jira (Scrum) cho **một team nhỏ (1 nhóm)**. MVP tập trung vào vòng làm việc Scrum cốt lõi: quản lý nhiều project, viết issue (Story/Task/Bug), lập kế hoạch sprint từ backlog, và theo dõi tiến độ qua Kanban board kéo-thả có realtime.
 
 ### Người dùng & quy mô
 - 1 workspace dùng chung (toàn bộ app = 1 team). Không multi-organization.
