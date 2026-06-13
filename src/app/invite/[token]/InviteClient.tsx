@@ -1,7 +1,6 @@
 'use client'
 
 import { useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { acceptInvite } from '@/app/members/actions'
 import { Button } from '@/components/ui/button'
@@ -11,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 
 export function InviteClient({ token, email }: { token: string; email: string }) {
-  const router = useRouter()
   const [pending, startTransition] = useTransition()
 
   function onSubmit(fd: FormData) {
@@ -32,8 +30,8 @@ export function InviteClient({ token, email }: { token: string; email: string })
         return
       }
       toast.success('Tham gia thành công!')
-      router.push('/projects')
-      router.refresh()
+      // Hard navigation: đảm bảo server nhận session mới (cookie) khi render /projects.
+      window.location.href = '/projects'
     })
   }
 

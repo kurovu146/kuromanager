@@ -14,7 +14,7 @@ export function AppNav() {
         </Link>
       </nav>
       <form action={signOut}>
-        <Button variant="ghost" size="sm">
+        <Button type="submit" variant="ghost" size="sm">
           Đăng xuất
         </Button>
       </form>
