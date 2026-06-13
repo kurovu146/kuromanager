@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { signInSchema, signUpSchema } from './auth'
+import { signInSchema, changePasswordSchema } from './auth'
 import { createProjectSchema } from './project'
-import { inviteSchema } from './invite'
+import { addMemberSchema } from './member'
 
 describe('signInSchema', () => {
   it('chấp nhận input hợp lệ', () => {
@@ -15,18 +15,19 @@ describe('signInSchema', () => {
   })
 })
 
-describe('signUpSchema', () => {
-  it('cần fullName', () => {
+describe('changePasswordSchema', () => {
+  it('chấp nhận khi 2 mật khẩu khớp + đủ dài', () => {
     expect(
-      signUpSchema.safeParse({ email: 'a@b.com', password: '123456', fullName: '' }).success,
-    ).toBe(false)
-    expect(
-      signUpSchema.safeParse({ email: 'a@b.com', password: '123456', fullName: 'An' }).success,
+      changePasswordSchema.safeParse({ password: 'abc123', confirm: 'abc123' }).success,
     ).toBe(true)
   })
-  it('token là optional', () => {
-    const r = signUpSchema.safeParse({ email: 'a@b.com', password: '123456', fullName: 'An' })
-    expect(r.success).toBe(true)
+  it('từ chối khi không khớp', () => {
+    expect(
+      changePasswordSchema.safeParse({ password: 'abc123', confirm: 'xyz123' }).success,
+    ).toBe(false)
+  })
+  it('từ chối khi quá ngắn', () => {
+    expect(changePasswordSchema.safeParse({ password: '123', confirm: '123' }).success).toBe(false)
   })
 })
 
@@ -46,13 +47,13 @@ describe('createProjectSchema', () => {
   })
 })
 
-describe('inviteSchema', () => {
+describe('addMemberSchema', () => {
   it('email + role hợp lệ', () => {
-    expect(inviteSchema.safeParse({ email: 'a@b.com', role: 'member' }).success).toBe(true)
-    expect(inviteSchema.safeParse({ email: 'a@b.com', role: 'admin' }).success).toBe(true)
+    expect(addMemberSchema.safeParse({ email: 'a@b.com', role: 'member' }).success).toBe(true)
+    expect(addMemberSchema.safeParse({ email: 'a@b.com', role: 'admin' }).success).toBe(true)
   })
   it('từ chối email sai / role lạ', () => {
-    expect(inviteSchema.safeParse({ email: 'x', role: 'member' }).success).toBe(false)
-    expect(inviteSchema.safeParse({ email: 'a@b.com', role: 'owner' }).success).toBe(false)
+    expect(addMemberSchema.safeParse({ email: 'x', role: 'member' }).success).toBe(false)
+    expect(addMemberSchema.safeParse({ email: 'a@b.com', role: 'owner' }).success).toBe(false)
   })
 })

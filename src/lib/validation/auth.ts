@@ -5,10 +5,15 @@ export const signInSchema = z.object({
   password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
 })
 
-export const signUpSchema = signInSchema.extend({
-  fullName: z.string().min(1, 'Nhập tên'),
-  token: z.string().optional(),
-})
+export const changePasswordSchema = z
+  .object({
+    password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
+    confirm: z.string(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    message: 'Mật khẩu nhập lại không khớp',
+    path: ['confirm'],
+  })
 
 export type SignInInput = z.infer<typeof signInSchema>
-export type SignUpInput = z.infer<typeof signUpSchema>
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>

@@ -2,48 +2,76 @@
 
 import { randomBytes } from 'node:crypto'
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
-import { inviteSchema } from '@/lib/validation/invite'
-import { sendInviteEmail } from '@/lib/email'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { addMemberSchema } from '@/lib/validation/member'
 
-export async function inviteMember(formData: FormData) {
-  const parsed = inviteSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: parsed.error.issues[0].message }
-
-  const supabase = await createClient()
-  const token = randomBytes(24).toString('hex')
-  const { error } = await supabase.from('invitations').insert({
-    email: parsed.data.email,
-    role: parsed.data.role,
-    token,
-  })
-  if (error) {
-    if (error.code === '42501') return { error: 'Chỉ admin được mời thành viên' }
-    return { error: error.message }
-  }
-
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? ''
-  const link = `${base}/invite/${token}`
-
-  // Gửi email mời qua Resend (best-effort) — vẫn trả link để admin copy nếu email lỗi.
-  const mail = await sendInviteEmail(parsed.data.email, link, parsed.data.role)
-
-  revalidatePath('/settings/members')
-  return { link, emailSent: mail.sent, emailError: mail.sent ? undefined : mail.error }
+/** Sinh mật khẩu tạm dễ đọc, đủ mạnh (~12 ký tự). */
+function genTempPassword() {
+  return randomBytes(9).toString('base64url')
 }
 
-// Bảo mật: KHÔNG nhận userId từ client. RPC dùng auth.uid() + kiểm tra email khớp lời mời.
-export async function acceptInvite(token: string) {
+/** Xác thực người gọi là admin. Trả về user nếu hợp lệ, ngược lại trả lỗi. */
+async function requireAdmin() {
   const supabase = await createClient()
-  const { error } = await supabase.rpc('accept_invite', { p_token: token })
-  if (error) return { error: error.message }
-  return {}
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Chưa đăng nhập' as const }
+  const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (me?.role !== 'admin') return { error: 'Chỉ admin được thực hiện' as const }
+  return { user }
+}
+
+export async function addMember(formData: FormData) {
+  const gate = await requireAdmin()
+  if ('error' in gate) return { error: gate.error }
+
+  const parsed = addMemberSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+  const { email, role } = parsed.data
+  const fullName = parsed.data.fullName?.trim() || email.split('@')[0]
+
+  const admin = createAdminClient()
+  const tempPassword = genTempPassword()
+
+  // 1) Tạo auth user (đã confirm, không cần email).
+  const { data: created, error: createErr } = await admin.auth.admin.createUser({
+    email,
+    password: tempPassword,
+    email_confirm: true,
+    user_metadata: { full_name: fullName },
+  })
+  if (createErr || !created.user) {
+    const msg = createErr?.message ?? ''
+    if (/already|registered|exists/i.test(msg)) return { error: 'Email này đã có tài khoản' }
+    return { error: msg || 'Tạo tài khoản thất bại' }
+  }
+
+  // 2) Tạo profile (bypass RLS qua service role) + bắt đổi mật khẩu lần đầu.
+  const { error: profErr } = await admin.from('profiles').insert({
+    id: created.user.id,
+    email,
+    full_name: fullName,
+    role,
+    must_change_password: true,
+  })
+  if (profErr) {
+    // Rollback: xoá auth user để tránh tài khoản mồ côi không có profile.
+    await admin.auth.admin.deleteUser(created.user.id)
+    return { error: profErr.message }
+  }
+
+  revalidatePath('/settings/members')
+  return { email, tempPassword }
 }
 
 export async function updateRole(userId: string, role: 'admin' | 'member') {
+  const gate = await requireAdmin()
+  if ('error' in gate) return { error: gate.error }
+
   const supabase = await createClient()
 
-  // Chặn hạ cấp admin cuối cùng → tránh khoá toàn bộ (không còn ai quản trị).
+  // Chặn hạ cấp admin cuối cùng → tránh khoá toàn bộ.
   if (role === 'member') {
     const { count } = await supabase
       .from('profiles')
@@ -54,8 +82,8 @@ export async function updateRole(userId: string, role: 'admin' | 'member') {
 
   const { error } = await supabase.from('profiles').update({ role }).eq('id', userId)
   if (error) {
-    if (error.code === '42501') return { error: 'Chỉ admin được đổi vai trò' }
-    if (error.code === 'P0001') return { error: 'Chỉ admin được đổi vai trò' }
+    if (error.code === '42501' || error.code === 'P0001')
+      return { error: 'Chỉ admin được đổi vai trò' }
     return { error: error.message }
   }
   revalidatePath('/settings/members')

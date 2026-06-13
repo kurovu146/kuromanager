@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 // Next 16: "middleware" được đổi tên thành "proxy". File phải nằm cùng cấp app/.
-const PUBLIC_PREFIXES = ['/login', '/signup', '/invite', '/auth']
+// Invite-only: không có signup/invite công khai. /change-password yêu cầu đăng nhập.
+const PUBLIC_PREFIXES = ['/login', '/auth']
 
 export async function proxy(request: NextRequest) {
   const { response, user } = await updateSession(request)
@@ -14,7 +15,7 @@ export async function proxy(request: NextRequest) {
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
-  if (user && (pathname === '/login' || pathname === '/signup')) {
+  if (user && pathname === '/login') {
     const url = request.nextUrl.clone()
     url.pathname = '/projects'
     return NextResponse.redirect(url)

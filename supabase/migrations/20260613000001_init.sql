@@ -6,18 +6,7 @@ create table public.profiles (
   full_name text,
   avatar_url text,
   role text not null default 'member' check (role in ('admin','member')),
-  created_at timestamptz not null default now()
-);
-
--- invitations
-create table public.invitations (
-  id uuid primary key default gen_random_uuid(),
-  email text not null,
-  role text not null default 'member' check (role in ('admin','member')),
-  token text not null unique,
-  status text not null default 'pending' check (status in ('pending','accepted','expired')),
-  invited_by uuid references public.profiles(id),
-  expires_at timestamptz not null default (now() + interval '7 days'),
+  must_change_password boolean not null default false,
   created_at timestamptz not null default now()
 );
 

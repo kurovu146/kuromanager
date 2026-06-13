@@ -11,7 +11,6 @@ $$;
 
 -- bật RLS
 alter table public.profiles enable row level security;
-alter table public.invitations enable row level security;
 alter table public.projects enable row level security;
 alter table public.sprints enable row level security;
 alter table public.issues enable row level security;
@@ -22,10 +21,6 @@ create policy profiles_select on public.profiles for select using (public.is_mem
 create policy profiles_update on public.profiles for update
   using (id = auth.uid() or public.is_admin())
   with check (id = auth.uid() or public.is_admin());
-
--- invitations: chỉ admin
-create policy invitations_admin_all on public.invitations for all
-  using (public.is_admin()) with check (public.is_admin());
 
 -- projects
 create policy projects_select on public.projects for select using (public.is_member());
