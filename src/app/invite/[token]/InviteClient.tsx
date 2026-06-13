@@ -24,7 +24,7 @@ export function InviteClient({ token, email }: { token: string; email: string })
         toast.error(error?.message ?? 'Đăng ký thất bại')
         return
       }
-      const res = await acceptInvite(token, data.user.id)
+      const res = await acceptInvite(token)
       if (res?.error) {
         toast.error(res.error)
         return

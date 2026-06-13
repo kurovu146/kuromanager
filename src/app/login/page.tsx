@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { signIn } from '@/app/auth/actions'
 import { AuthForm } from '@/components/auth/AuthForm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,10 +12,7 @@ export default function LoginPage() {
         <CardContent className="space-y-4">
           <AuthForm mode="signin" action={signIn} />
           <p className="text-sm text-muted-foreground">
-            Chưa có tài khoản?{' '}
-            <Link href="/signup" className="underline">
-              Đăng ký
-            </Link>
+            Chưa có tài khoản? Liên hệ admin để được mời vào team.
           </p>
         </CardContent>
       </Card>

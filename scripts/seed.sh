@@ -15,8 +15,12 @@ curl -s -X POST "$URL/auth/v1/admin/users" \
   -d "{\"email\":\"$EMAIL\",\"password\":\"$PASS\",\"email_confirm\":true,\"user_metadata\":{\"full_name\":\"$NAME\"}}" \
   -o /dev/null -w "  HTTP %{http_code}\n" || true
 
-# set role=admin (dùng cờ bypass guard vì thao tác chạy ngoài context auth admin)
+# App là invite-only: signup KHÔNG tự tạo profile. Seed tạo profile admin trực tiếp.
 CN=$(docker ps --format '{{.Names}}' | grep 'supabase_db' | head -1)
 docker exec "$CN" psql -U postgres -t -A -c \
-  "set app.bypass_role_guard='on'; update public.profiles set role='admin' where email='$EMAIL'; select '  '||email||' -> '||role from public.profiles where email='$EMAIL';"
+  "set app.bypass_role_guard='on';
+   insert into public.profiles (id, email, full_name, role)
+   select id, email, '$NAME', 'admin' from auth.users where email='$EMAIL'
+   on conflict (id) do update set role='admin';
+   select '  '||email||' -> '||role from public.profiles where email='$EMAIL';"
 echo "✓ Done"

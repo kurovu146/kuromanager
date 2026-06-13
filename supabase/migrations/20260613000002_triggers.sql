@@ -15,24 +15,11 @@ create trigger comments_set_updated_at before update on public.comments
 create unique index sprints_one_active_per_project
   on public.sprints (project_id) where status = 'active';
 
--- tạo profile khi có user mới trong auth.users
-create or replace function public.handle_new_user()
-returns trigger language plpgsql security definer set search_path = public as $$
-begin
-  insert into public.profiles (id, email, full_name, role)
-  values (
-    new.id,
-    new.email,
-    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email,'@',1)),
-    coalesce(new.raw_user_meta_data->>'role', 'member')
-  )
-  on conflict (id) do nothing;
-  return new;
-end $$;
-
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
+-- LƯU Ý BẢO MẬT: KHÔNG tự tạo profile khi có user mới trong auth.users.
+-- App là invite-only: profile (và role) chỉ được tạo qua accept_invite (email khớp lời mời)
+-- hoặc seed admin. Nếu auto-tạo profile từ raw_user_meta_data, attacker có thể gọi
+-- supabase.auth.signUp({ data: { role: 'admin' } }) bằng anon key → tự cấp quyền admin.
+-- User signup không qua invite sẽ KHÔNG có profile → is_member() = false → không truy cập được gì.
 
 -- chặn member tự đổi role; chỉ admin (hoặc context bypass của accept_invite) được đổi
 create or replace function public.guard_role_change()

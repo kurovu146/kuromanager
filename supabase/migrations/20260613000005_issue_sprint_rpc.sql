@@ -89,6 +89,21 @@ begin
   return v_sprint;
 end $$;
 
+-- Chặn issue gắn vào sprint của project KHÁC (data integrity, áp cho cả insert & update).
+create or replace function public.check_issue_sprint_project()
+returns trigger language plpgsql set search_path = public as $$
+begin
+  if new.sprint_id is not null then
+    if (select project_id from public.sprints where id = new.sprint_id) is distinct from new.project_id then
+      raise exception 'Sprint không thuộc project này';
+    end if;
+  end if;
+  return new;
+end $$;
+
+create trigger issues_check_sprint_project before insert or update on public.issues
+  for each row execute function public.check_issue_sprint_project();
+
 grant execute on function public.create_issue(uuid,text,text,text,text,int,uuid,uuid) to authenticated;
 grant execute on function public.start_sprint(uuid) to authenticated;
 grant execute on function public.complete_sprint(uuid) to authenticated;

@@ -16,7 +16,10 @@ export async function inviteMember(formData: FormData) {
     role: parsed.data.role,
     token,
   })
-  if (error) return { error: error.message }
+  if (error) {
+    if (error.code === '42501') return { error: 'Chỉ admin được mời thành viên' }
+    return { error: error.message }
+  }
 
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? ''
   revalidatePath('/settings/members')
@@ -24,20 +27,32 @@ export async function inviteMember(formData: FormData) {
   return { link: `${base}/invite/${token}` }
 }
 
-export async function acceptInvite(token: string, userId: string) {
+// Bảo mật: KHÔNG nhận userId từ client. RPC dùng auth.uid() + kiểm tra email khớp lời mời.
+export async function acceptInvite(token: string) {
   const supabase = await createClient()
-  const { error } = await supabase.rpc('accept_invite', {
-    p_token: token,
-    p_user_id: userId,
-  })
+  const { error } = await supabase.rpc('accept_invite', { p_token: token })
   if (error) return { error: error.message }
   return {}
 }
 
 export async function updateRole(userId: string, role: 'admin' | 'member') {
   const supabase = await createClient()
+
+  // Chặn hạ cấp admin cuối cùng → tránh khoá toàn bộ (không còn ai quản trị).
+  if (role === 'member') {
+    const { count } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'admin')
+    if ((count ?? 0) <= 1) return { error: 'Phải còn ít nhất 1 admin' }
+  }
+
   const { error } = await supabase.from('profiles').update({ role }).eq('id', userId)
-  if (error) return { error: error.message }
+  if (error) {
+    if (error.code === '42501') return { error: 'Chỉ admin được đổi vai trò' }
+    if (error.code === 'P0001') return { error: 'Chỉ admin được đổi vai trò' }
+    return { error: error.message }
+  }
   revalidatePath('/settings/members')
   return {}
 }
