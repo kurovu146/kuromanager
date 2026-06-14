@@ -126,6 +126,15 @@
     @apply font-display;
     letter-spacing: -0.01em;
   }
+  /* Con trỏ tay cho mọi phần tử bấm được (Tailwind v4 không tự thêm) */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  select:not(:disabled),
+  summary,
+  label[for],
+  a[href] {
+    cursor: pointer;
+  }
   ::selection {
     background: oklch(0.56 0.15 40 / 0.18);
   }
