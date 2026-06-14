@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useProject } from '@/lib/queries/project'
 import { useIssues, type Issue } from '@/lib/queries/issues'
@@ -30,6 +31,7 @@ export function BacklogScreen({ projectKey }: { projectKey: string }) {
   const { data: issues } = useIssues(project?.id)
   const { data: sprints } = useSprints(project?.id)
   const [selected, setSelected] = useState<Issue | null>(null)
+  const [showCompleted, setShowCompleted] = useState(false)
 
   useRealtimeInvalidate({
     channel: `issues-${project?.id ?? 'none'}`,
@@ -44,6 +46,7 @@ export function BacklogScreen({ projectKey }: { projectKey: string }) {
 
   const allIssues = issues ?? []
   const openSprints = (sprints ?? []).filter((s) => s.status !== 'completed')
+  const completedSprints = (sprints ?? []).filter((s) => s.status === 'completed').reverse()
   const moveTargets = openSprints
   const hasActive = openSprints.some((s) => s.status === 'active')
 
@@ -113,6 +116,26 @@ export function BacklogScreen({ projectKey }: { projectKey: string }) {
             </option>
           ))}
         </select>
+      </div>
+    )
+  }
+
+  function ReadRow({ issue }: { issue: Issue }) {
+    return (
+      <div className="flex items-center gap-2.5 border-t px-4 py-2 text-sm hover:bg-muted/20">
+        <span title={issue.type} className="text-base leading-none">
+          {TYPE_ICON[issue.type]}
+        </span>
+        <button className="flex-1 truncate text-left" onClick={() => setSelected(issue)}>
+          <span className="mr-2 font-mono text-xs text-muted-foreground">{issue.key}</span>
+          {issue.title}
+        </button>
+        <span className="text-xs text-muted-foreground">{STATUS_LABEL[issue.status]}</span>
+        {issue.story_points != null && (
+          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-muted px-1 text-[11px]">
+            {issue.story_points}
+          </span>
+        )}
       </div>
     )
   }
@@ -192,6 +215,48 @@ export function BacklogScreen({ projectKey }: { projectKey: string }) {
           <div>{backlogIssues.map((i) => <Row key={i.id} issue={i} />)}</div>
         )}
       </section>
+
+      {completedSprints.length > 0 && (
+        <section className="overflow-hidden rounded-xl border bg-card">
+          <button
+            onClick={() => setShowCompleted((v) => !v)}
+            className="flex w-full items-center gap-2 border-b bg-muted/30 px-4 py-3 text-left transition-colors hover:bg-muted/50"
+          >
+            {showCompleted ? (
+              <ChevronDown className="size-4 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="size-4 text-muted-foreground" />
+            )}
+            <span className="font-display text-lg">Sprint đã hoàn tất</span>
+            <span className="text-xs text-muted-foreground">{completedSprints.length} sprint</span>
+          </button>
+          {showCompleted &&
+            completedSprints.map((s) => {
+              const list = sprintIssues(s.id)
+              const done = list.filter((i) => i.status === 'done').length
+              return (
+                <div key={s.id}>
+                  <div className="flex flex-wrap items-center justify-between gap-2 bg-muted/15 px-4 py-2.5">
+                    <span className="font-medium">{s.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {s.completed_at
+                        ? `Hoàn tất ${new Date(s.completed_at).toLocaleDateString('vi-VN')} · `
+                        : ''}
+                      {done}/{list.length} done {points(list) ? `· ${points(list)}` : ''}
+                    </span>
+                  </div>
+                  {list.length === 0 ? (
+                    <p className="border-t px-4 py-3 text-sm text-muted-foreground">
+                      Không còn issue (đã chuyển về backlog).
+                    </p>
+                  ) : (
+                    list.map((i) => <ReadRow key={i.id} issue={i} />)
+                  )}
+                </div>
+              )
+            })}
+        </section>
+      )}
 
       <IssueDetailDialog issue={selected} projectId={project.id} onClose={() => setSelected(null)} />
     </div>

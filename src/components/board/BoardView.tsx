@@ -1,13 +1,16 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   DndContext,
+  DragOverlay,
   PointerSensor,
+  closestCorners,
   useSensor,
   useSensors,
   useDroppable,
   type DragEndEvent,
+  type DragStartEvent,
 } from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -85,6 +88,8 @@ export function BoardView({
 }) {
   const qc = useQueryClient()
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const activeIssue = activeId ? issues.find((i) => i.id === activeId) : null
 
   const columns = useMemo(() => {
     const map: Record<IssueStatus, Issue[]> = {
@@ -97,7 +102,12 @@ export function BoardView({
     return map
   }, [issues])
 
+  function handleDragStart(e: DragStartEvent) {
+    setActiveId(String(e.active.id))
+  }
+
   function handleDragEnd(e: DragEndEvent) {
+    setActiveId(null)
     const { active, over } = e
     if (!over || active.id === over.id) return
 
@@ -141,12 +151,25 @@ export function BoardView({
   }
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveId(null)}
+    >
       <div className="flex gap-3 overflow-x-auto pb-2">
         {BOARD_COLUMNS.map((status) => (
           <Column key={status} status={status} issues={columns[status]} onOpen={onOpenIssue} />
         ))}
       </div>
+      <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.2,0,0,1)' }}>
+        {activeIssue ? (
+          <div className="rotate-2 cursor-grabbing shadow-[0_18px_40px_-12px_rgba(40,30,20,0.5)]">
+            <IssueCard issue={activeIssue} />
+          </div>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   )
 }
