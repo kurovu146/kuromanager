@@ -85,8 +85,10 @@ export function BacklogScreen({ projectKey }: { projectKey: string }) {
 
   function Row({ issue }: { issue: Issue }) {
     return (
-      <div className="flex items-center gap-2 border-b px-3 py-2 text-sm last:border-b-0 hover:bg-muted/40">
-        <span title={issue.type}>{TYPE_ICON[issue.type]}</span>
+      <div className="flex items-center gap-2.5 border-b px-4 py-2.5 text-sm last:border-b-0 hover:bg-muted/20">
+        <span title={issue.type} className="text-base leading-none">
+          {TYPE_ICON[issue.type]}
+        </span>
         <button className="flex-1 truncate text-left" onClick={() => setSelected(issue)}>
           <span className="mr-2 font-mono text-xs text-muted-foreground">{issue.key}</span>
           {issue.title}
@@ -131,13 +133,14 @@ export function BacklogScreen({ projectKey }: { projectKey: string }) {
       {openSprints.map((sprint) => {
         const list = sprintIssues(sprint.id)
         return (
-          <section key={sprint.id} className="rounded-lg border">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/40 px-3 py-2">
-              <div className="flex items-center gap-2">
-                <span className="font-medium">{sprint.name}</span>
+          <section key={sprint.id} className="overflow-hidden rounded-xl border bg-card">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-4 py-3">
+              <div className="flex items-center gap-2.5">
+                <span className="font-display text-lg">{sprint.name}</span>
                 {sprint.status === 'active' && (
-                  <span className="rounded bg-green-600/15 px-1.5 py-0.5 text-xs text-green-700">
-                    active
+                  <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/12 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                    <span className="size-1.5 rounded-full bg-emerald-500" />
+                    đang chạy
                   </span>
                 )}
                 <span className="text-xs text-muted-foreground">
@@ -173,10 +176,10 @@ export function BacklogScreen({ projectKey }: { projectKey: string }) {
         )
       })}
 
-      <section className="rounded-lg border">
-        <div className="flex items-center justify-between border-b bg-muted/40 px-3 py-2">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">Backlog</span>
+      <section className="overflow-hidden rounded-xl border bg-card">
+        <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <span className="font-display text-lg">Backlog</span>
             <span className="text-xs text-muted-foreground">
               {backlogIssues.length} issue {points(backlogIssues) ? `· ${points(backlogIssues)}` : ''}
             </span>

@@ -45,16 +45,25 @@ function Column({
   onOpen: (i: Issue) => void
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
+  const dot: Record<string, string> = {
+    todo: 'bg-zinc-400',
+    in_progress: 'bg-amber-500',
+    in_review: 'bg-violet-500',
+    done: 'bg-emerald-500',
+  }
   return (
-    <div className="flex min-w-64 flex-1 flex-col rounded-lg bg-muted/40">
-      <div className="flex items-center justify-between px-3 py-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+    <div className="flex min-w-64 flex-1 flex-col rounded-xl border bg-muted/30">
+      <div className="flex items-center gap-2 px-3 py-2.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+        <span className={`size-2 rounded-full ${dot[status]}`} />
         <span>{STATUS_LABEL[status]}</span>
-        <span>{issues.length}</span>
+        <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 text-[11px] text-secondary-foreground normal-case">
+          {issues.length}
+        </span>
       </div>
       <SortableContext items={issues.map((i) => i.id)} strategy={verticalListSortingStrategy}>
         <div
           ref={setNodeRef}
-          className={`flex min-h-24 flex-1 flex-col gap-2 p-2 transition-colors ${isOver ? 'bg-accent/50' : ''}`}
+          className={`flex min-h-24 flex-1 flex-col gap-2.5 rounded-b-xl p-2.5 transition-colors ${isOver ? 'bg-brand/8' : ''}`}
         >
           {issues.map((i) => (
             <SortableCard key={i.id} issue={i} onOpen={() => onOpen(i)} />

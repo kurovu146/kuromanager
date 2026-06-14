@@ -42,7 +42,7 @@ export function CreateSprintDialog({ projectId }: { projectId: string }) {
       <DialogTrigger render={<Button size="sm" variant="outline">Tạo sprint</Button>} />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Sprint mới</DialogTitle>
+          <DialogTitle className="font-display text-xl font-normal">Sprint mới</DialogTitle>
         </DialogHeader>
         <form action={onSubmit} className="space-y-4">
           <div className="space-y-1">

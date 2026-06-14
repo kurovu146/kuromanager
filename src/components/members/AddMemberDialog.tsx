@@ -50,7 +50,7 @@ export function AddMemberDialog() {
       <DialogTrigger render={<Button>Thêm thành viên</Button>} />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Thêm thành viên</DialogTitle>
+          <DialogTitle className="font-display text-xl font-normal">Thêm thành viên</DialogTitle>
         </DialogHeader>
 
         {created ? (

@@ -6,9 +6,12 @@ import { AddMemberDialog } from './AddMemberDialog'
 export function MembersHeader() {
   const { data: me } = useCurrentProfile()
   return (
-    <div className="flex items-center justify-between">
-      <h1 className="text-2xl font-bold">Thành viên</h1>
+    <header className="flex items-end justify-between border-b pb-5">
+      <div>
+        <p className="text-sm text-muted-foreground">Quản lý</p>
+        <h1 className="mt-1 font-display text-4xl">Thành viên</h1>
+      </div>
       {me?.role === 'admin' && <AddMemberDialog />}
-    </div>
+    </header>
   )
 }

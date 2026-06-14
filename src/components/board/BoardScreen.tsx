@@ -56,11 +56,15 @@ export function BoardScreen({ projectKey }: { projectKey: string }) {
 
       {activeSprint ? (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <span className="font-medium">{activeSprint.name}</span>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3">
+            <div className="flex items-center gap-2.5">
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/12 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
+                Đang chạy
+              </span>
+              <span className="font-display text-lg">{activeSprint.name}</span>
               {activeSprint.goal && (
-                <span className="ml-2 text-sm text-muted-foreground">— {activeSprint.goal}</span>
+                <span className="text-sm text-muted-foreground">— {activeSprint.goal}</span>
               )}
             </div>
             <div className="flex gap-2">
@@ -71,22 +75,25 @@ export function BoardScreen({ projectKey }: { projectKey: string }) {
             </div>
           </div>
           {boardIssues.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Sprint chưa có issue. Tạo issue hoặc thêm từ backlog.
-            </p>
+            <div className="rounded-xl border border-dashed py-16 text-center">
+              <p className="font-display text-xl">Sprint chưa có issue</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Tạo issue mới hoặc kéo từ backlog vào sprint này.
+              </p>
+            </div>
           ) : (
             <BoardView issues={boardIssues} projectId={project.id} onOpenIssue={setSelected} />
           )}
         </>
       ) : (
-        <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          <p>Chưa có sprint nào đang chạy.</p>
-          <p className="mt-1 text-sm">
+        <div className="rounded-xl border border-dashed py-20 text-center">
+          <p className="font-display text-2xl">Chưa có sprint đang chạy</p>
+          <p className="mt-2 text-sm text-muted-foreground">
             Vào{' '}
-            <Link href={`/projects/${project.key}/backlog`} className="underline">
+            <Link href={`/projects/${project.key}/backlog`} className="font-medium text-brand underline-offset-2 hover:underline">
               Backlog
             </Link>{' '}
-            để tạo & bắt đầu sprint.
+            để tạo &amp; bắt đầu sprint.
           </p>
         </div>
       )}

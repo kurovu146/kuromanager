@@ -64,7 +64,7 @@ export function IssueCreateDialog({
       <DialogTrigger render={<Button size="sm">{label}</Button>} />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Issue mới</DialogTitle>
+          <DialogTitle className="font-display text-xl font-normal">Issue mới</DialogTitle>
         </DialogHeader>
         <form action={onSubmit} className="space-y-4">
           <div className="space-y-1">

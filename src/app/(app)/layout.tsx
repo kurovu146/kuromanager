@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { AppNav } from '@/components/AppNav'
+import { AppSidebar } from '@/components/AppSidebar'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   // Ép đổi mật khẩu lần đầu: ai còn must_change_password thì không vào được app
@@ -19,9 +19,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <AppNav />
-      <main className="flex-1 p-6">{children}</main>
+    <div className="flex min-h-screen">
+      <AppSidebar />
+      <main className="min-w-0 flex-1">
+        <div className="mx-auto max-w-7xl px-8 py-8">{children}</div>
+      </main>
     </div>
   )
 }

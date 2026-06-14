@@ -3,11 +3,14 @@ import { CreateProjectDialog } from '@/components/project/CreateProjectDialog'
 
 export default function ProjectsPage() {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Dự án</h1>
+    <div className="space-y-8">
+      <header className="flex items-end justify-between border-b pb-5">
+        <div>
+          <p className="text-sm text-muted-foreground">Không gian làm việc</p>
+          <h1 className="mt-1 font-display text-4xl">Dự án</h1>
+        </div>
         <CreateProjectDialog />
-      </div>
+      </header>
       <ProjectList />
     </div>
   )

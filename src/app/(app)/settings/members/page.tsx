@@ -3,7 +3,7 @@ import { MembersHeader } from '@/components/members/MembersHeader'
 
 export default function MembersPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <MembersHeader />
       <MemberList />
     </div>

@@ -39,7 +39,7 @@ export function CreateProjectDialog() {
       <DialogTrigger render={<Button>Tạo project</Button>} />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Project mới</DialogTitle>
+          <DialogTitle className="font-display text-xl font-normal">Project mới</DialogTitle>
         </DialogHeader>
         <form action={onSubmit} className="space-y-4">
           <div className="space-y-1">
