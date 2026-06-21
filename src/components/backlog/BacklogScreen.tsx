@@ -14,6 +14,7 @@ import { CreateSprintDialog } from './CreateSprintDialog'
 import { IssueCreateDialog } from '@/components/issue/IssueCreateDialog'
 import { IssueDetailDialog } from '@/components/issue/IssueDetailDialog'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { TYPE_ICON, STATUS_LABEL } from '@/lib/issue-meta'
 import { toast } from 'sonner'
 
@@ -73,17 +74,15 @@ export function BacklogScreen({ projectKey }: { projectKey: string }) {
     })
   }
 
-  function onComplete(sprint: Sprint) {
-    if (!confirm('Hoàn tất sprint? Issue chưa Done sẽ trả về backlog.')) return
-    completeSprint(sprint.id).then((res) => {
-      if (res?.error) {
-        toast.error(res.error)
-        return
-      }
-      toast.success('Đã hoàn tất sprint')
-      qc.invalidateQueries({ queryKey: ['sprints', project!.id] })
-      qc.invalidateQueries({ queryKey: ['issues', project!.id] })
-    })
+  async function onComplete(sprint: Sprint) {
+    const res = await completeSprint(sprint.id)
+    if (res?.error) {
+      toast.error(res.error)
+      return
+    }
+    toast.success('Đã hoàn tất sprint')
+    qc.invalidateQueries({ queryKey: ['sprints', project!.id] })
+    qc.invalidateQueries({ queryKey: ['issues', project!.id] })
   }
 
   function Row({ issue }: { issue: Issue }) {
@@ -182,9 +181,13 @@ export function BacklogScreen({ projectKey }: { projectKey: string }) {
                     Bắt đầu
                   </Button>
                 ) : (
-                  <Button size="sm" variant="outline" onClick={() => onComplete(sprint)}>
-                    Hoàn tất
-                  </Button>
+                  <ConfirmDialog
+                    trigger={<Button size="sm" variant="outline">Hoàn tất</Button>}
+                    title="Hoàn tất sprint?"
+                    description="Issue chưa Done sẽ được trả về backlog."
+                    confirmLabel="Hoàn tất"
+                    onConfirm={() => onComplete(sprint)}
+                  />
                 )}
               </div>
             </div>

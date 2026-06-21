@@ -13,6 +13,7 @@ import { BoardView } from './BoardView'
 import { IssueCreateDialog } from '@/components/issue/IssueCreateDialog'
 import { IssueDetailDialog } from '@/components/issue/IssueDetailDialog'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
 
 export function BoardScreen({ projectKey }: { projectKey: string }) {
@@ -36,18 +37,16 @@ export function BoardScreen({ projectKey }: { projectKey: string }) {
   const activeSprint = (sprints ?? []).find((s) => s.status === 'active')
   const boardIssues = (issues ?? []).filter((i) => i.sprint_id === activeSprint?.id)
 
-  function onComplete() {
+  async function onComplete() {
     if (!activeSprint) return
-    if (!confirm('Hoàn tất sprint? Issue chưa Done sẽ trả về backlog.')) return
-    completeSprint(activeSprint.id).then((res) => {
-      if (res?.error) {
-        toast.error(res.error)
-        return
-      }
-      toast.success('Đã hoàn tất sprint')
-      qc.invalidateQueries({ queryKey: ['sprints', project!.id] })
-      qc.invalidateQueries({ queryKey: ['issues', project!.id] })
-    })
+    const res = await completeSprint(activeSprint.id)
+    if (res?.error) {
+      toast.error(res.error)
+      return
+    }
+    toast.success('Đã hoàn tất sprint')
+    qc.invalidateQueries({ queryKey: ['sprints', project!.id] })
+    qc.invalidateQueries({ queryKey: ['issues', project!.id] })
   }
 
   return (
@@ -69,9 +68,13 @@ export function BoardScreen({ projectKey }: { projectKey: string }) {
             </div>
             <div className="flex gap-2">
               <IssueCreateDialog projectId={project.id} sprintId={activeSprint.id} />
-              <Button size="sm" variant="outline" onClick={onComplete}>
-                Hoàn tất sprint
-              </Button>
+              <ConfirmDialog
+                trigger={<Button size="sm" variant="outline">Hoàn tất sprint</Button>}
+                title="Hoàn tất sprint?"
+                description="Issue chưa Done sẽ được trả về backlog."
+                confirmLabel="Hoàn tất"
+                onConfirm={onComplete}
+              />
             </div>
           </div>
           {boardIssues.length === 0 ? (
